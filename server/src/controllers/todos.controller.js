@@ -1,5 +1,6 @@
 
 import Todo from '../models/todo.model.js'
+import mongoose from 'mongoose'
 const getTodos = async (req, res) => {
     try {
         const todos = await Todo.find()
@@ -12,7 +13,6 @@ const getTodos = async (req, res) => {
 
 
 const addTodo = async (req, res) => {
-console.log(req.body)
 
     const { todo } = req.body
     console.log(todo)
@@ -22,7 +22,7 @@ console.log(req.body)
         done: false,
         editThisTodo: false
     })
-    console.log(newTodo)
+
     try {
         await newTodo.save()
         res.status(201).json(newTodo)
@@ -31,13 +31,17 @@ console.log(req.body)
     }
 }
 
-const getTodoById = async (req, res) => {
-    try {
-        const todo = await Todo.findById(req.params.id)
-        res.status(200).json(todo)
-    } catch (error) {
-        res.status(404).json({ message: error.message })
-    }
+const getTodoById = (req, res, next, id) => { 
+   
+        Todo.findById(id).exec((err, todo) => {
+            console.log('todo', todo)
+            if (err) {
+                res.status(404).json({ message: err.message })
+            } else {
+                res.todo = todo
+                next()
+            }
+        })   
 }
 
 const removeTodo = async (req, res) => {
@@ -49,4 +53,26 @@ const removeTodo = async (req, res) => {
     }
 }
 
-export default { getTodos, addTodo, getTodoById, removeTodo };
+const updateTodo = (req, res) => {
+    const { id } = req.params
+    console.log(req.params)
+    const { todo, done, editTodo } = req.body
+    console.log('edit toso', req.body)
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No todo with id: ${id}`)
+
+    const updatedTodo = { id, todo, done, editTodo }
+
+    console.log('updated todo', updatedTodo)
+
+    Todo.findByIdAndUpdate(id, updatedTodo,(err, result) => {
+        if(err){
+            res.status(404).json({message: err.message})
+        }else{
+            res.status(200).json({message: "Todo updated"})
+        }
+    })
+
+    
+}
+
+export default { getTodos, addTodo, getTodoById, removeTodo, updateTodo };

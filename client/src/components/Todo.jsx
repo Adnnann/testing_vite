@@ -1,10 +1,12 @@
 
-import SubmitTodo from "./Button"
+
 import { useState, useEffect } from "react"
 import '../assets/todo.css'
 import axios from "axios"
 import {useQuery, useMutation, useQueryClient} from 'react-query'
-import { responsiveFontSizes } from "@mui/material";
+import { Card, Input, Button, Typography, Grid, ButtonGroup } from "@mui/material"
+import SubmitTodo from "./Button"
+
 
 
 // queryClient.invalidateQueries('todos')
@@ -12,6 +14,7 @@ export default function ToDo(){
   
 
     const [todo, setTodo] = useState("")
+    const [todoToEdit, setTodoToEdit] = useState([])
     //const [newTodo, setNewTodo] = useState("")
    // const [done, setDone] = useState([])
     const [editThisTodo, setEditThisTodo] = useState([])
@@ -25,20 +28,22 @@ export default function ToDo(){
             .then(res => res.data)
             .catch(err => err)
             return response
-        }
+        },
+        onError: (error => error),
+        staleTime: 1000
     
     })
 
     const addTodo = useMutation({
-        mutationFn: async (todo) => {
+        mutationFn: async (todo) => { 
          await axios.post("http://localhost:5000/api/todos", todo)
          .then(res => res.data)
          .catch(err => err)
         },
         onSuccess: () => {
-            console.log("success from addTodo")
             queryClient.invalidateQueries({queryKey:['todos']})
         },
+        onError: (error => error)
     })
 
     const deleteTodo = useMutation({
@@ -48,19 +53,32 @@ export default function ToDo(){
          .catch(err => err)
         },
         onSuccess: () => {
-            console.log("success")
             queryClient.invalidateQueries('todos')
         },
-        onError: (error) => {
-            console.log(error)
-        }
+        onError: (error => error)  
     })
 
-    console.log(data)
+    const updateTodo = useMutation({
+        mutationFn: async (todo) => {
+         await axios.patch(`http://localhost:5000/api/todos/${todo.id}`, todo, 
+         {headers: {'Content-Type': 'application/json'}})
+         .then(res => res.data)
+         .catch(err => err)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries('todos')
+        },
+        onError: (error) => error
+        
+    })
+
+ 
+
+
 
     useEffect(() => {
 
-    
+  
 
         // if(localStorage.getItem("todo") === null && localStorage.getItem("done") === null && done.length){
         //     localStorage.setItem("todo", JSON.stringify(todo))
@@ -88,14 +106,20 @@ export default function ToDo(){
 
 
     const submitTodo = (todo) => {
-        console.log(todo)
-            addTodo.mutate({todo:todo, done:false, editThisTodo:false})
-            setTodo("")
+        addTodo.mutate({todo:todo, done:false, editThisTodo:false})
+        setTodo("")
 
         // setTodo([...todo, newTodo])
         // setNewTodo("")
         // setDone([...done, false])   
         // setEditThisTodo([...editThisTodo, false])
+    }
+
+    const handeKeyDown = (e) => {
+        if(e.keyCode === 13){
+            addTodo.mutate({todo:todo, done:false, editThisTodo:false})
+            setTodo("")
+        }
     }
     
     const handleChange = (e) => {
@@ -103,7 +127,17 @@ export default function ToDo(){
     }
 
 
-    const handleDone = (index) => {
+    const handleDone = (item) => {
+
+        const todo = {
+            id: item._id,
+            done: !item.done,
+            editTodo: false,
+        }
+
+        updateTodo.mutate(todo)
+
+  
         // const newDone = done
         // newDone[index] = !done[index]
         // setDone([...newDone])
@@ -116,61 +150,135 @@ export default function ToDo(){
         // setDone([...done.filter((item, i) => i !== index)])
     }
 
-    const editTodo = (event, title, i) => {
+    const editTodo = (item, index) => {
+        const todo = {
+            id: item._id,
+            done: false,
+            editTodo: true,
+            todo:item.todo
+        }
+
+
+     updateTodo.mutate(todo)
+
+     const allTodos = todoToEdit
+     allTodos[index] = item.todo
+
+    setTodoToEdit([...allTodos])
+
+
+
         // const newEditThisTodo = Array(editThisTodo.length).fill(false)
         // newEditThisTodo[i] = !editThisTodo[i]
         // setEditThisTodo([...newEditThisTodo])
     }
 
-    const handleEditChange = (index) => {
+
+
+    const cancelEditingTodo = (item) => {
+
+        const todo = {
+            id: item._id,
+            done: false,
+            editTodo: false,
+        }
+
+        updateTodo.mutate(todo)
+    }
+
+    const handleEditChange = (e, index) => {
+        
+        const todos = [...todoToEdit]
+        todos[index] = e.target.value
+    
+        setTodoToEdit([...todos])
+
     //  const allTodos = todo
     //  allTodos[index] = event.target.value
     // setTodo([...allTodos])
     }
 
-    const saveEditedTodo = (event, title, index) => {
+   
+    const saveEditedTodo = (item, index) => {
+
+        const todo = {
+            id: item._id,
+            todo: todoToEdit[index],
+            done: false,
+            editTodo: false,
+        }
+
+        updateTodo.mutate(todo)
         // setEditThisTodo([...todo])
         // setEditThisTodo([...Array(editThisTodo.length).fill(false)])
     }
 
+    const handleEditKeyDown = (e,item, index) => {
+        const todo = {
+            id: item._id,
+            todo: todoToEdit[index],
+            done: false,
+            editTodo: false,
+        }
+
+        if(e.keyCode === 13){
+            updateTodo.mutate(todo)
+        }
+    }
+
 
     return(
-        <div>
+        <Grid item xs={11} md={6} lg={6} xl={4}>
+         {  error && <h1>Error</h1> }
+        {  isLoading && <h1>Loading...</h1> }
         <div style={{marginBottom:'20px'}}>
-            <h1>ToDo</h1>
-            <p>Click on to-do to change status</p>
-            {/* <p>{`You currently have ${todo.length} tasks and you have finished ${done.filter(item => item == 1).length}`}</p> */}
-            <input type="text" placeholder="Add a new todo" onChange={(e)=>handleChange(e)} value={todo} style={{marginBottom:"10px"}}/> 
+          
+            <Typography variant="h5" sx={{marginTop:"10%"}}>Click on to-do to change status</Typography>
+            <Typography variant="subtitle">{`You currently have ${data ? data.length : '0'} tasks and you have finished ${data ? data.filter(item => item.done == 1).length: '0'}`}</Typography>
+   
+            <Input type="text" placeholder="Add a new todo" 
+            onChange={(e)=>handleChange(e)} 
+            value={todo} style={{marginBottom:"10px"}} 
+            onKeyDown={(e) => handeKeyDown(e)} 
+            sx={{display:'block', marginTop:'10%',width:{xs:'280px', md:'500px', lg:'600px', xl:'600px'}}}/>
             <SubmitTodo handleClick={() => submitTodo(todo)}/>
     
         </div>
         <div>
-        {  isLoading && <h1>Loading...</h1> }
-        {  error && <h1>Error</h1> }
+       
+        
             {
 
-              data && data.map((item, index) => {
+              data && !data?.message ? data.map((item, index) => {
                     return(
-                        <div key={index} style={{width:'500px', borderColor:'black', borderStyle:'solid', marginBottom:'10px', paddingLeft:'10px'}}>
-                        <h3 onClick={()=>handleDone(index)} className={item.done ? 'done' : 'notDone'}   style={{display:editThisTodo[index] ? "none" : "block" }}>{item.todo}</h3>
-                            <input type="text" value={item} 
-                            style={{display:editThisTodo[index] ? "block" : "none" }} onChange={()=>handleEditChange(index)}/>
+                        <Card key={index} style={{ marginBottom:'10px', paddingLeft:'10px'}} sx={{width:{xs:'280px', md:'500px', lg:'600px', xl:'600px'}}}>
+                        <h3 onClick={()=>handleDone(item)} className={item.done ? 'done' : 'notDone'}   style={{display:item.editTodo ? "none" : "block" }}>{item.todo}</h3>
+                        <Input type="text" 
+                        value={todoToEdit[index]} 
+                        style={{display:item.editTodo ? "block" : "none" }} 
+                        onChange={(e)=>handleEditChange(e, index)} 
+                        onKeyDown={(e)=>handleEditKeyDown(e, item, index)}
+                        sx={{width:{xs:'260px', md:'4800px', lg:'580px', xl:'580px'}}}
+                        />
                        
                        {
-                            !editThisTodo[index] ? 
-                            (<><p style={{color:"green", display:"inline-flex", cursor:"pointer"}} onClick={(event)=>editTodo(event, item, index)}>Edit</p> 
-                             <p style={{color:"red", display:"inline-flex", marginLeft:'20px', cursor:"pointer"}} onClick={() => removeTodo(item._id)}>Delete</p></>)
+                            !item.editTodo ? 
+                            (<>
+                                 <Button style={{cursor:"pointer"}} color="primary" onClick={()=>editTodo(item, index)}>Edit</Button>
+                                 <Button style={{cursor:"pointer"}} color="error" onClick={() => removeTodo(item._id)}>Delete</Button>
+                             </>)
                              : 
-                             <p style={{color:"green", display:"inline-flex"}} onClick={(event)=>saveEditedTodo(event, item, index)}>Save</p>
+                             (<><Button style={{cursor:"pointer"}} color="primary" onClick={()=>cancelEditingTodo(item)}>Cancel</Button>
+                             <Button style={{cursor:"pointer"}} color="error" onClick={()=>saveEditedTodo( item, index)} >Save</Button></>)
                        
 
                        }
                             
-                        </div>
+                        </Card>
                     )
                 }) 
-            }
+           : null }
         </div>
-        </div>
+        </Grid>
     )
 }

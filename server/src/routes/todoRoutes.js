@@ -10,4 +10,8 @@ router.post('/api/todos', todosController.addTodo);
 
 router.delete('/api/todos/:id', todosController.removeTodo);
 
+router.patch('/api/todos/:id', todosController.updateTodo);
+
+router.param('id', todosController.getTodoById)
+
 export default router;

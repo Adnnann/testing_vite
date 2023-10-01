@@ -12,7 +12,7 @@ function App() {
 
   return (
     <Grid container justifyContent={"center"}>
-      {/* <NavBar /> */}
+     <NavBar /> 
       <QueryClientProvider client={queryClient}>
       <ToDos />
       </QueryClientProvider>

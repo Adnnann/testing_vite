@@ -1,8 +1,10 @@
+import { Button } from "@mui/material"
+
 export default function SubmitTodo({handleClick}){
     return(
-        <div>
-            <button onClick={handleClick} style={{cursor:'pointer'}}>Submit</button>
-        </div>
+       
+            <Button variant="contained" onClick={handleClick} style={{cursor:'pointer'}}>Submit</Button>
+        
     )
 }
 

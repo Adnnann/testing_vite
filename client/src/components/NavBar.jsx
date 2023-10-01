@@ -10,22 +10,12 @@ import MenuIcon from '@mui/icons-material/Menu';
 export default function NavBar() {
   return (
 
-      <AppBar position="sticky">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            News
+      <AppBar position="sticky" sx={{textAlign:'center'}}>
+       
+          <Typography variant="h3" component="div" style={{textAlign:'center'}}>
+            ToDo List
           </Typography>
-          <Button color="inherit">Login</Button>
-        </Toolbar>
+    
       </AppBar>
   
   );
