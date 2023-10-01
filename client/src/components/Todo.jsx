@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import '../assets/todo.css'
 import axios from "axios"
 import {useQuery, useMutation, useQueryClient} from 'react-query'
-import { Card, Input, Button, Typography, Grid, ButtonGroup } from "@mui/material"
+import { Card, Input, Button, Typography, Grid } from "@mui/material"
 import SubmitTodo from "./Button"
 
 
@@ -12,14 +12,10 @@ import SubmitTodo from "./Button"
 // queryClient.invalidateQueries('todos')
 export default function ToDo(){
   
-
     const [todo, setTodo] = useState("")
     const [todoToEdit, setTodoToEdit] = useState([])
-    //const [newTodo, setNewTodo] = useState("")
-   // const [done, setDone] = useState([])
-    const [editThisTodo, setEditThisTodo] = useState([])
+ 
 
-    // queryClient.invalidateQueries({queryKey:['todos']})
     const queryClient = new useQueryClient()
     const {data, isLoading, error} = useQuery({
         queryKey:['todos'], 
@@ -73,46 +69,9 @@ export default function ToDo(){
     })
 
  
-
-
-
-    useEffect(() => {
-
-  
-
-        // if(localStorage.getItem("todo") === null && localStorage.getItem("done") === null && done.length){
-        //     localStorage.setItem("todo", JSON.stringify(todo))
-        //     localStorage.setItem("done", JSON.stringify(done))
-        // }
-
-        // if(todo.length > 0 || done.length > 0){
-        //     localStorage.setItem("todo", JSON.stringify(todo))
-        //     localStorage.setItem("done", JSON.stringify(done))
-        // }else{
-        //     localStorage.setItem("todo", JSON.stringify([]))
-        //     localStorage.setItem("done", JSON.stringify([]))
-
-        // }
-
-        // const data = localStorage.getItem("todo")
-        // const doneData = localStorage.getItem("done")
-     
-        // if (todo.length === 0 || done.length === 0) {
-        //     setTodo(JSON.parse(data))
-        //     setDone(JSON.parse(doneData))
-        // }
-    }, [])
-
-
-
     const submitTodo = (todo) => {
         addTodo.mutate({todo:todo, done:false, editThisTodo:false})
         setTodo("")
-
-        // setTodo([...todo, newTodo])
-        // setNewTodo("")
-        // setDone([...done, false])   
-        // setEditThisTodo([...editThisTodo, false])
     }
 
     const handeKeyDown = (e) => {
@@ -136,18 +95,11 @@ export default function ToDo(){
         }
 
         updateTodo.mutate(todo)
-
   
-        // const newDone = done
-        // newDone[index] = !done[index]
-        // setDone([...newDone])
-       
     }
 
     const removeTodo = (id) => {
         deleteTodo.mutate(id)
-        // setTodo([...todo.filter((item, i)=>i !== index)])
-        // setDone([...done.filter((item, i) => i !== index)])
     }
 
     const editTodo = (item, index) => {
@@ -159,18 +111,12 @@ export default function ToDo(){
         }
 
 
-     updateTodo.mutate(todo)
+        updateTodo.mutate(todo)
 
-     const allTodos = todoToEdit
-     allTodos[index] = item.todo
-
-    setTodoToEdit([...allTodos])
-
-
-
-        // const newEditThisTodo = Array(editThisTodo.length).fill(false)
-        // newEditThisTodo[i] = !editThisTodo[i]
-        // setEditThisTodo([...newEditThisTodo])
+        const allTodos = todoToEdit
+        allTodos[index] = item.todo
+        
+        setTodoToEdit([...allTodos])
     }
 
 
@@ -193,9 +139,6 @@ export default function ToDo(){
     
         setTodoToEdit([...todos])
 
-    //  const allTodos = todo
-    //  allTodos[index] = event.target.value
-    // setTodo([...allTodos])
     }
 
    
@@ -209,8 +152,6 @@ export default function ToDo(){
         }
 
         updateTodo.mutate(todo)
-        // setEditThisTodo([...todo])
-        // setEditThisTodo([...Array(editThisTodo.length).fill(false)])
     }
 
     const handleEditKeyDown = (e,item, index) => {
